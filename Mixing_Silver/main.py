@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -34,7 +35,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QMessageBox,
 )
-from PySide6.QtGui import QFont, QFontDatabase
+from PySide6.QtGui import QFont, QFontDatabase, QIcon
 
 
 @dataclass
@@ -996,10 +997,37 @@ class MainWindow(QMainWindow):
 
 def main() -> None:
     app = QApplication(sys.argv)
+    icon_path = resource_path("omega.ico")
+    if icon_path:
+        app.setWindowIcon(QIcon(icon_path))
+    _set_windows_app_user_model_id("MixingSilver.App")
     window = MainWindow()
+    if icon_path:
+        window.setWindowIcon(QIcon(icon_path))
     window.resize(900, 700)
     window.show()
     sys.exit(app.exec())
+
+
+def resource_path(relative_path: str) -> str | None:
+    base_path = None
+    if getattr(sys, "frozen", False):
+        base_path = getattr(sys, "_MEIPASS", None)
+    if not base_path:
+        base_path = os.path.abspath(".")
+    candidate = os.path.join(base_path, relative_path)
+    return candidate if os.path.exists(candidate) else None
+
+
+def _set_windows_app_user_model_id(app_id: str) -> None:
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except Exception:
+        return
 
 
 if __name__ == "__main__":
