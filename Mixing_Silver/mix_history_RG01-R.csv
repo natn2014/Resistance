@@ -1,0 +1,2 @@
+Timestamp,Resistance High,Resistance Low,Resistance Recycle,Weight High (g),Weight Low (g),Weight Recycle (g),Base R,Adjusted R,Actual Resistance,Error,Model Weights
+2026/02/06 09:34,2.8,0.3,1.33,50.0,86.0,0.0,1.2191176470588236,1.1879091176470589,1.33,-0.1420908823529412,"-0.0051, -0.0031, -0.0053, 0.0033, -0.0107"
