@@ -132,14 +132,18 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self._build_prediction_group())
         main_layout.addWidget(self._build_learning_group())
         main_layout.addWidget(self._build_table_group())
+        main_layout.addWidget(QLabel("AGC Automotive Thailand Dx"))
 
         self.model_tab = QWidget()
         model_layout = QVBoxLayout(self.model_tab)
         model_layout.addWidget(self._build_model_tab())
+        model_layout.addWidget(QLabel("AGC Automotive Thailand Dx"))
 
         self.formula_tab = QWidget()
         formula_layout = QVBoxLayout(self.formula_tab)
         formula_layout.addWidget(self._build_formula_tab())
+        formula_layout.addStretch()
+        formula_layout.addWidget(QLabel("AGC Automotive Thailand Dx"))
 
         self.tabs.addTab(self.main_tab, "Mixing")
         self.tabs.addTab(self.model_tab, "Model")
@@ -151,7 +155,7 @@ class MainWindow(QMainWindow):
         self._load_history_from_csv()
 
     def _build_inputs_group(self) -> QGroupBox:
-        group = QGroupBox("Mix Inputs")
+        group = QGroupBox("Mix Inputs [ป้อนข้อมูลส่วนผสม]")
         grid = QGridLayout(group)
 
         self.r_a = QDoubleSpinBox()
@@ -169,33 +173,33 @@ class MainWindow(QMainWindow):
             spin.setRange(0, 100000)
             spin.valueChanged.connect(self._update_total_weight)
 
-        self.lock_a = QCheckBox("Lock")
-        self.lock_b = QCheckBox("Lock")
-        self.lock_c = QCheckBox("Lock")
+        self.lock_a = QCheckBox("Lock [ล็อก]")
+        self.lock_b = QCheckBox("Lock [ล็อก]")
+        self.lock_c = QCheckBox("Lock [ล็อก]")
 
-        high_group = QGroupBox("High")
+        high_group = QGroupBox("High [สีสูง]")
         high_layout = QFormLayout(high_group)
-        high_layout.addRow("Resistance High", self.r_a)
-        high_layout.addRow("Weight High (g)", self.w_a)
-        high_layout.addRow("Lock", self.lock_a)
+        high_layout.addRow("Resistance High [ค่าความต้านทานสูง]", self.r_a)
+        high_layout.addRow("Weight High (g) [น้ำหนักสูง (กรัม)]", self.w_a)
+        high_layout.addRow("Lock [ล็อก]", self.lock_a)
 
-        low_group = QGroupBox("Low")
+        low_group = QGroupBox("Low [สีต่ำ]")
         low_layout = QFormLayout(low_group)
-        low_layout.addRow("Resistance Low", self.r_b)
-        low_layout.addRow("Weight Low (g)", self.w_b)
-        low_layout.addRow("Lock", self.lock_b)
+        low_layout.addRow("Resistance Low [ค่าความต้านทานต่ำ]", self.r_b)
+        low_layout.addRow("Weight Low (g) [น้ำหนักต่ำ (กรัม)]", self.w_b)
+        low_layout.addRow("Lock [ล็อก]", self.lock_b)
 
-        recycle_group = QGroupBox("Recycle")
+        recycle_group = QGroupBox("Recycle [รีไซเคิล]")
         recycle_layout = QFormLayout(recycle_group)
-        recycle_layout.addRow("Resistance Recycle", self.r_c)
-        recycle_layout.addRow("Weight Recycle (g)", self.w_c)
-        recycle_layout.addRow("Lock", self.lock_c)
+        recycle_layout.addRow("Resistance Recycle [ค่าความต้านทานสีรีไซเคิล]", self.r_c)
+        recycle_layout.addRow("Weight Recycle (g) [น้ำหนักรีไซเคิล (กรัม)]", self.w_c)
+        recycle_layout.addRow("Lock [ล็อก]", self.lock_c)
 
         grid.addWidget(high_group, 0, 0)
         grid.addWidget(low_group, 0, 1)
         grid.addWidget(recycle_group, 0, 2)
 
-        self.compute_button = QPushButton("Compute")
+        self.compute_button = QPushButton("Compute [คำนวณ]")
         self.compute_button.clicked.connect(self.compute_prediction)
         grid.addWidget(self.compute_button, 1, 0, 1, 3)
 
@@ -207,16 +211,16 @@ class MainWindow(QMainWindow):
         return group
 
     def _build_prediction_group(self) -> QGroupBox:
-        group = QGroupBox("Prediction")
+        group = QGroupBox("Prediction [พยากรณ์]")
         layout = QFormLayout(group)
 
         self.base_pred_label = QLabel("-")
         self.adjusted_pred_label = QLabel("-")
         self.error_label = QLabel("-")
 
-        layout.addRow("Base R (weighted)", self.base_pred_label)
-        layout.addRow("Adjusted R", self.adjusted_pred_label)
-        layout.addRow("Last error", self.error_label)
+        layout.addRow("Base R (weighted) [ค่าความต้านทานฐาน]", self.base_pred_label)
+        layout.addRow("Adjusted R [ค่าความต้านทานทำนายสุดท้าย]", self.adjusted_pred_label)
+        layout.addRow("Last error [ข้อผิดพลาดล่าสุด]", self.error_label)
 
         return group
 
@@ -228,27 +232,14 @@ class MainWindow(QMainWindow):
         self.actual_r.setDecimals(4)
         self.actual_r.setRange(-10000, 10000)
 
-        self.lr_slider = QSlider(Qt.Orientation.Horizontal)
-        self.lr_slider.setRange(1, 1000)
-        self.lr_slider.setValue(100)
-        self.lr_slider.valueChanged.connect(self._update_lr_label)
-
-        self.lr_label = QLabel("0.0100")
-
-        self.update_button = QPushButton("Update Model")
+        self.update_button = QPushButton("Update Model [ปรับแบบจำลอง]")
         self.update_button.clicked.connect(self.update_model)
-
-        self.reset_button = QPushButton("Reset Model")
-        self.reset_button.clicked.connect(self.reset_model)
-
-        self.weights_view = QLineEdit()
-        self.weights_view.setReadOnly(True)
 
         self.target_r = QDoubleSpinBox()
         self.target_r.setDecimals(4)
         self.target_r.setRange(-10000, 10000)
 
-        self.solve_button = QPushButton("Solve Target")
+        self.solve_button = QPushButton("Solve Target [หาน้ำหนัก]")
         self.solve_button.clicked.connect(self.solve_target_weight)
 
         self.solve_status = QLabel("-")
@@ -257,37 +248,29 @@ class MainWindow(QMainWindow):
         self.target_total_weight.setDecimals(4)
         self.target_total_weight.setRange(0, 10000)
 
-        layout.addWidget(QLabel("Actual Resistance"), 0, 0)
+        layout.addWidget(QLabel("Actual Resistance [ค่าความต้านทานจริง]"), 0, 0)
         layout.addWidget(self.actual_r, 0, 1)
         layout.addWidget(self.update_button, 0, 2)
 
-        layout.addWidget(QLabel("Sensitivity (learning rate)"), 1, 0)
-        layout.addWidget(self.lr_slider, 1, 1)
-        layout.addWidget(self.lr_label, 1, 2)
+        layout.addWidget(QLabel("Target Adjusted Resistance [ค่าความต้านทานที่ต้องการ]"), 1, 0)
+        layout.addWidget(self.target_r, 1, 1)
+        layout.addWidget(self.solve_button, 1, 2)
 
-        layout.addWidget(QLabel("Model weights"), 2, 0)
-        layout.addWidget(self.weights_view, 2, 1)
-        layout.addWidget(self.reset_button, 2, 2)
+        layout.addWidget(QLabel("Target Total Weight (g) [น้ำหนักรวมเป้าหมาย (กรัม)]"), 2, 0)
+        layout.addWidget(self.target_total_weight, 2, 1)
 
-        layout.addWidget(QLabel("Target Adjusted Resistance"), 3, 0)
-        layout.addWidget(self.target_r, 3, 1)
-        layout.addWidget(self.solve_button, 3, 2)
+        layout.addWidget(QLabel("Solve status [สถานะการแก้ปัญหา]"), 3, 0)
+        layout.addWidget(self.solve_status, 3, 1, 1, 2)
 
-        layout.addWidget(QLabel("Target Total Weight (g)"), 4, 0)
-        layout.addWidget(self.target_total_weight, 4, 1)
-
-        layout.addWidget(QLabel("Solve status"), 5, 0)
-        layout.addWidget(self.solve_status, 5, 1, 1, 2)
-
-        self._update_lr_label()
-        self._refresh_weights_view()
         return group
 
     def _build_table_group(self) -> QGroupBox:
         group = QGroupBox("History")
+        group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         layout = QVBoxLayout(group)
 
         self.table = QTableWidget(0, 12)
+        self.table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.table.setHorizontalHeaderLabels(
             [
                 "Timestamp",
@@ -310,7 +293,7 @@ class MainWindow(QMainWindow):
         return group
 
     def _build_formula_tab(self) -> QGroupBox:
-        group = QGroupBox("Mixing Formulas")
+        group = QGroupBox("Mixing Formulas [สูตรผสม]")
         layout = QFormLayout(group)
 
         self.formula_selector = QComboBox()
@@ -318,17 +301,17 @@ class MainWindow(QMainWindow):
         self.formula_selector.currentTextChanged.connect(self._on_formula_changed)
 
         self.new_formula_input = QLineEdit()
-        self.add_formula_button = QPushButton("Add Formula")
+        self.add_formula_button = QPushButton("Add Formula [เพิ่มสูตรผสม]")
         self.add_formula_button.clicked.connect(self._add_formula)
 
-        layout.addRow("Active formula", self.formula_selector)
-        layout.addRow("New formula name", self.new_formula_input)
+        layout.addRow("Active formula [สูตรผสมที่ใช้งาน]", self.formula_selector)
+        layout.addRow("New formula name [ชื่อสูตรผสมใหม่]", self.new_formula_input)
         layout.addRow("", self.add_formula_button)
 
         return group
 
     def _build_model_tab(self) -> QGroupBox:
-        group = QGroupBox("Model Summary")
+        group = QGroupBox("Model Summary [สรุปแบบจำลอง]")
         layout = QVBoxLayout(group)
         self.model_layout = layout
 
@@ -352,16 +335,45 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(form)
 
+        # Controls section for model adjustment
+        controls_group = QGroupBox("Model Controls [การควบคุมแบบจำลอง]")
+        controls_layout = QGridLayout(controls_group)
+
+        self.lr_slider = QSlider(Qt.Orientation.Horizontal)
+        self.lr_slider.setRange(1, 1000)
+        self.lr_slider.setValue(100)
+        self.lr_slider.valueChanged.connect(self._update_lr_label)
+
+        self.lr_label = QLabel("0.0100")
+
+        self.reset_button = QPushButton("Reset Model [รีเซ็ตแบบจำลอง]")
+        self.reset_button.clicked.connect(self.reset_model)
+
+        self.weights_view = QLineEdit()
+        self.weights_view.setReadOnly(True)
+
+        controls_layout.addWidget(QLabel("Sensitivity (learning rate) [ความไว (อัตราการเรียนรู้)]"), 0, 0)
+        controls_layout.addWidget(self.lr_slider, 0, 1)
+        controls_layout.addWidget(self.lr_label, 0, 2)
+
+        controls_layout.addWidget(QLabel("Model weights"), 1, 0)
+        controls_layout.addWidget(self.weights_view, 1, 1)
+        controls_layout.addWidget(self.reset_button, 1, 2)
+
+        layout.addWidget(controls_group)
+
         self.figure = Figure(figsize=(5, 4), tight_layout=True)
         self.ax_corr = self.figure.add_subplot(1, 1, 1)
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         layout.addWidget(self.canvas)
 
-        self.pairplot_button = QPushButton("Show Formula Pairplot")
+        self.pairplot_button = QPushButton("Show Formula Pairplot [แสดงแผนภาพคู่สูตรผสม]")
         self.pairplot_button.clicked.connect(self._show_formula_pairplot)
         layout.addWidget(self.pairplot_button)
 
+        self._update_lr_label()
+        self._refresh_weights_view()
         self._refresh_model_summary()
         return group
 
@@ -425,7 +437,7 @@ class MainWindow(QMainWindow):
         target_total = self.target_total_weight.value()
 
         if len(variable_indices) == 0:
-            self.solve_status.setText("Unlock at least one weight to solve.")
+            self.solve_status.setText("Unlock at least one weight to solve. [ปลดล็อกน้ำหนักอย่างน้อยหนึ่งค่าเพื่อแก้ปัญหา]")
             return
 
         if target_total <= 0:
@@ -705,7 +717,7 @@ class MainWindow(QMainWindow):
         if not name:
             return
         self.active_formula = name
-        self.active_formula_label.setText(f"Active formula: {self.active_formula}")
+        self.active_formula_label.setText(f"Active formula [สูตรผสมที่ใช้งาน]: {self.active_formula}")
         self.history_file = self._history_file_for(self.active_formula)
         self._load_history_from_csv()
 
