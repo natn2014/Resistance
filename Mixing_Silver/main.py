@@ -13,6 +13,8 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import seaborn as sns
 import pandas as pd
+import numpy as np
+from scipy.stats import gaussian_kde
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
@@ -829,6 +831,8 @@ class MainWindow(QMainWindow):
             self._set_model_canvas(fig)
             return
 
+        actual_color = "#1f77b4"  # Blue - matches seaborn default palette
+        predicted_color = "#FF7F0E"  # Orange - matches seaborn default palette
         sns.kdeplot(
             data=df,
             x="Actual_R",
@@ -837,6 +841,7 @@ class MainWindow(QMainWindow):
             fill=True,
             alpha=0.35,
             linewidth=2,
+            color=actual_color,
         )
         sns.kdeplot(
             data=df,
@@ -846,6 +851,7 @@ class MainWindow(QMainWindow):
             fill=True,
             alpha=0.35,
             linewidth=2,
+            color=predicted_color,
         )
         ax.set_title("Actual vs Predicted (KDE)", color="white")
         ax.set_xlabel("Resistance", color="white")
@@ -853,6 +859,61 @@ class MainWindow(QMainWindow):
         ax.tick_params(colors="white")
         for spine in ax.spines.values():
             spine.set_color("white")
+        
+        # Add vertical line at peak of Actual Resistance
+        actual_values = df["Actual_R"].dropna().values
+        if len(actual_values) > 0:
+            kde_actual = gaussian_kde(actual_values)
+            x_range = ax.get_xlim()
+            x_points = np.linspace(x_range[0], x_range[1], 1000)
+            density_points_actual = kde_actual(x_points)
+            peak_idx_actual = np.argmax(density_points_actual)
+            peak_x_actual = x_points[peak_idx_actual]
+            peak_y_actual = density_points_actual[peak_idx_actual]
+            
+            # Draw vertical line at peak
+            ax.axvline(x=peak_x_actual, color=actual_color, linestyle="--", linewidth=2, alpha=0.8)
+            
+            # Add text label at the middle of the line
+            ax.text(
+                peak_x_actual,
+                peak_y_actual / 2,
+                f"{peak_x_actual:.2f}",
+                color=actual_color,
+                fontsize=10,
+                fontweight="bold",
+                ha="center",
+                va="center",
+                bbox=dict(boxstyle="round,pad=0.5", facecolor="black", edgecolor=actual_color, alpha=0.8),
+            )
+        
+        # Add vertical line at peak of Predicted Resistance
+        adjusted_values = df["Adjusted_R"].dropna().values
+        if len(adjusted_values) > 0:
+            kde = gaussian_kde(adjusted_values)
+            x_range = ax.get_xlim()
+            x_points = np.linspace(x_range[0], x_range[1], 1000)
+            density_points = kde(x_points)
+            peak_idx = np.argmax(density_points)
+            peak_x = x_points[peak_idx]
+            peak_y = density_points[peak_idx]
+            
+            # Draw vertical line at peak
+            ax.axvline(x=peak_x, color=predicted_color, linestyle="--", linewidth=2, alpha=0.8)
+            
+            # Add text label at the middle of the line
+            ax.text(
+                peak_x,
+                peak_y / 2,
+                f"{peak_x:.2f}",
+                color=predicted_color,
+                fontsize=10,
+                fontweight="bold",
+                ha="center",
+                va="center",
+                bbox=dict(boxstyle="round,pad=0.5", facecolor="black", edgecolor=predicted_color, alpha=0.8),
+            )
+        
         legend = ax.legend(facecolor="black", edgecolor="white")
         for text in legend.get_texts():
             text.set_color("white")
